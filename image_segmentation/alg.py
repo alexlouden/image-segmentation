@@ -4,7 +4,8 @@ import os
 import numpy as np
 import requests
 import cv2
-from sklearn.cluster import MeanShift, KMeans, DBSCAN, estimate_bandwidth
+from sklearn.feature_extraction.image import grid_to_graph
+from sklearn.cluster import MeanShift, KMeans, DBSCAN, AgglomerativeClustering, estimate_bandwidth
 
 
 job = {
@@ -100,7 +101,7 @@ class ClusterJob(object):
 
         # DBSCAN param
         # if epsilon is None:
-        self.params.epsilon = 2
+        self.params.epsilon = 255*0.1
 
         self.validate()
 
@@ -165,6 +166,9 @@ class ClusterJob(object):
 
         elif self.cluster_method == 'dbscan':
             segmented = self.cluster_dbscan(image_cols)
+
+        elif self.cluster_method == 'ward':
+            segmented = self.cluster_agglomerative_clustering(image_cols)
         else:
             raise RuntimeError('Invalid clustering algorithm')
 
@@ -235,7 +239,7 @@ class ClusterJob(object):
 
         # Clusters
         centers = np.zeros((self.number_of_clusters, 3))
-        for i in range(0, np.max(db.labels_) + 1):
+        for i in range(0, self.number_of_clusters):
             cluster_points = image_cols[db.labels_ == i]
             cluster_mean = np.mean(cluster_points, axis=0)
             centers[i, :] = cluster_mean
@@ -249,6 +253,36 @@ class ClusterJob(object):
         segmented = centers[labels]
         return segmented
 
+    def cluster_agglomerative_clustering(self, image_cols):
+
+        # Connectivity
+        # if self.params.connectivity:
+        connectivity = grid_to_graph(*self.image.shape[:2])
+        # else:
+        #     connectivity = None
+
+        ward = AgglomerativeClustering(
+            n_clusters=self.params.n_clusters,
+            linkage='ward',
+            connectivity=connectivity
+        )
+        ward.fit(image_cols)
+
+        self.number_of_clusters = len(np.unique(ward.labels_))
+        print 'number of clusters', self.number_of_clusters
+
+        centers = np.zeros((self.number_of_clusters, 3))
+        for i in range(0, self.number_of_clusters):
+            cluster_points = image_cols[ward.labels_ == i]
+            cluster_mean = np.mean(cluster_points, axis=0)
+            centers[i, :] = cluster_mean
+
+        centers = self.unscale_centers(centers)
+
+        labels = ward.labels_
+        segmented = centers[labels]
+        return segmented
+
     def export_segmented_image(self, filename):
 
         cv2.imwrite(filename, self.segmented_image, (cv2.IMWRITE_JPEG_QUALITY, 80))
@@ -257,16 +291,15 @@ class ClusterJob(object):
 if __name__ == "__main__":
     # url ="https://www.google.com.au/images/branding/googlelogo/2x/googlelogo_color_272x92dp.png"
 
-    cluster = 'affinity-propogation'
-    colour = 'hsv'
-
-    for cluster in ['dbscan']:
-        for colour in ['rgb', 'hsv', 'ycrcb', 'hls', 'lab', 'luv']:
-            cj = ClusterJob("", colour, cluster, n_clusters=7, quantile=0.05, scale=(1, 1, 1))
+    for cluster in ['ward']:
+        for colour in ['rgb', 'hsv', 'ycrcb', 'hls']:  # 'hsv', 'ycrcb', 'hls', 'lab', 'luv'
+            scale = (1, 1, 1)
+            cj = ClusterJob("", colour, cluster, n_clusters=7, quantile=0.05, scale=scale)
             # cj.fetch_image()
-            cj.image = load_image("~//Projects/image_segmentation/golden.jpeg")
+            example = 'golden'
+            cj.image = load_image("~/Projects/computer-vision/image_segmentation/examples/{}.jpg".format(example))
             # show(cj.image)
             cj.scale()
             cj.cluster()
             # show(cj.segmented_image)
-            cj.export_segmented_image('golden_{}_{}_s221.jpg'.format(cluster, colour))
+            cj.export_segmented_image('{}_{}_{}_{}{}{}.jpg'.format(example, cluster, colour, *scale))
