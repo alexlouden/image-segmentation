@@ -1,0 +1,1 @@
+web: gunicorn app.wsgi --worker-class gevent --worker-connections 100 --threads 2 --timeout 20 --log-file -

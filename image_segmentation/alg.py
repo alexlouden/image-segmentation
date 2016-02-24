@@ -256,10 +256,7 @@ class ClusterJob(object):
     def cluster_agglomerative_clustering(self, image_cols):
 
         # Connectivity
-        # if self.params.connectivity:
         connectivity = grid_to_graph(*self.image.shape[:2])
-        # else:
-        #     connectivity = None
 
         ward = AgglomerativeClustering(
             n_clusters=self.params.n_clusters,
