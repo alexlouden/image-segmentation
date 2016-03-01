@@ -43,7 +43,8 @@ def convert_image_to_bgr(image, colour_space_from):
 
 
 def download_image(url):
-    response = requests.get(url, stream=True)
+    response = requests.get(url, stream=True, timeout=5)
+    # TODO use grequests
     # Raise exception on error
     response.raise_for_status()
     numpy_array = np.asarray(bytearray(response.raw.read()), dtype=np.uint8)
