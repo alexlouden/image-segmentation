@@ -4,7 +4,6 @@ from flask.ext.redis import FlaskRedis
 from mockredis import MockRedis
 
 from segment.views import views
-from segment.validation import validation
 
 
 class MockRedisWrapper(MockRedis):
@@ -34,6 +33,5 @@ def create_app(testing=False):
     redis.init_app(app)
 
     app.register_blueprint(views)
-    app.register_blueprint(validation)
 
     return app

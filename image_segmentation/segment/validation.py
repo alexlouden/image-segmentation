@@ -1,8 +1,5 @@
 from wtforms import validators
 from flask_inputs import Inputs
-from flask import Blueprint, jsonify
-
-validation = Blueprint('validation', __name__)
 
 
 class ValidationError(Exception):
@@ -14,13 +11,6 @@ class ValidationError(Exception):
 
         if status_code is not None:
             self.status_code = status_code
-
-
-@validation.errorhandler(ValidationError)
-def handle_invalid_usage(error):
-    response = jsonify(success=False, errors=error.errors)
-    response.status_code = error.status_code
-    return response
 
 
 def validate_num_clusters_automatic(form, field):

@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify
-from requests.exceptions import HTTPError, Timeout
+from requests.exceptions import HTTPError, Timeout, RequestException
 
 from alg import download_image
 from utils import make_hash
@@ -8,6 +8,12 @@ from validation import ImageInputs, ValidationError
 
 views = Blueprint('views', __name__)
 
+
+@views.errorhandler(ValidationError)
+def handle_invalid_usage(error):
+    response = jsonify(success=False, errors=error.errors)
+    response.status_code = error.status_code
+    return response
 
 
 def format_image(image_data):
@@ -25,7 +31,7 @@ def image(image_url=''):
         'url': image_url,
     }
     # print params
-    print request.args
+    # print request.args
     # print request.view_args
 
     params_hash = make_hash(params)
@@ -56,11 +62,16 @@ def image(image_url=''):
         errors = ['URL timed out']
         raise ValidationError(errors)
 
-    except Exception as e:
+    except RequestException as e:
         # TODO log other errors
+        print 'misc error'
         print image_url, e
         errors = ['URL is not a valid image']
         raise ValidationError(errors)
+
+    except Exception:
+        # TOOD catch these
+        raise
 
     if image is None:
         errors = ['URL is not a valid image']
