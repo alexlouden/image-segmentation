@@ -4,6 +4,8 @@ import os
 import numpy as np
 import requests
 import cv2
+from cStringIO import StringIO
+
 from sklearn.feature_extraction.image import grid_to_graph
 from sklearn.cluster import MeanShift, KMeans, DBSCAN, AgglomerativeClustering, estimate_bandwidth
 
@@ -73,8 +75,8 @@ MAX_DIMENSION = 200
 
 
 class ClusterJob(object):
-    def __init__(self, image_url, colour_space, cluster_method, scale=None, n_clusters=None, quantile=None):
-        self.url = image_url
+    def __init__(self, image, colour_space='hsv', cluster_method='ward', scale=None, num_clusters=None, quantile=None):
+        self.image = image
         self.colour_space = colour_space
         self.cluster_method = cluster_method
 
@@ -88,11 +90,11 @@ class ClusterJob(object):
             self.params.scale = scale
 
         # K-means param
-        if n_clusters is None:
-            self.params.n_clusters = 8
+        if num_clusters is None:
+            self.params.num_clusters = 8
         else:
             # TODO validate
-            self.params.n_clusters = n_clusters
+            self.params.num_clusters = num_clusters
 
         # Mean-shift param
         if quantile is None:
@@ -111,19 +113,6 @@ class ClusterJob(object):
         # validate_url(self.url)
         # validate colour space
         # validate cluster method and options
-
-    def process(self):
-        self.fetch_image()
-        self.scale()
-        self.cluster()
-
-    def fetch_image(self):
-        self.image = download_image(self.url)
-
-        # self.image_height
-        # Colour channels? 4 - alpha, 1 grey, 3 = bgr?
-        # Resize if too big?
-        # E.g. downscale_local_mean
 
     def scale(self):
 
@@ -159,17 +148,17 @@ class ClusterJob(object):
             image_cols[:, i] *= self.params.scale[i]
 
         # Cluster
-        if self.cluster_method == 'k-means':
+        if self.cluster_method == 'kmeans':
             segmented = self.cluster_k_means(image_cols)
 
-        elif self.cluster_method == 'mean-shift':
+        elif self.cluster_method == 'meanshift':
             segmented = self.cluster_means_shift(image_cols)
 
-        elif self.cluster_method == 'dbscan':
-            segmented = self.cluster_dbscan(image_cols)
+        # elif self.cluster_method == 'dbscan':
+        #     segmented = self.cluster_dbscan(image_cols)
 
         elif self.cluster_method == 'ward':
-            segmented = self.cluster_agglomerative_clustering(image_cols)
+            segmented = self.cluster_ward(image_cols)
         else:
             raise RuntimeError('Invalid clustering algorithm')
 
@@ -190,7 +179,7 @@ class ClusterJob(object):
         print 'K-means clustering'
 
         km = KMeans(
-            n_clusters=self.params.n_clusters,
+            n_clusters=self.params.num_clusters,
             max_iter=300
         )
         km.fit(image_cols)
@@ -254,13 +243,14 @@ class ClusterJob(object):
         segmented = centers[labels]
         return segmented
 
-    def cluster_agglomerative_clustering(self, image_cols):
+    def cluster_ward(self, image_cols):
 
         # Connectivity
+        # TODO optional connectivity
         connectivity = grid_to_graph(*self.image.shape[:2])
 
         ward = AgglomerativeClustering(
-            n_clusters=self.params.n_clusters,
+            n_clusters=self.params.num_clusters,
             linkage='ward',
             connectivity=connectivity
         )
@@ -285,6 +275,13 @@ class ClusterJob(object):
 
         cv2.imwrite(filename, self.segmented_image, (cv2.IMWRITE_JPEG_QUALITY, 80))
 
+    def export_segmented_image_file(self):
+        f = StringIO()
+        ret, buf = cv2.imencode('.jpg', self.segmented_image)
+        f.write(np.array(buf).tostring())
+        f.seek(0)
+        return f
+
 
 if __name__ == "__main__":
     # url ="https://www.google.com.au/images/branding/googlelogo/2x/googlelogo_color_272x92dp.png"
@@ -292,7 +289,7 @@ if __name__ == "__main__":
     for cluster in ['ward']:
         for colour in ['rgb', 'hsv', 'ycrcb', 'hls']:  # 'hsv', 'ycrcb', 'hls', 'lab', 'luv'
             scale = (1, 1, 1)
-            cj = ClusterJob("", colour, cluster, n_clusters=7, quantile=0.05, scale=scale)
+            cj = ClusterJob("", colour, cluster, num_clusters=7, quantile=0.05, scale=scale)
             # cj.fetch_image()
             example = 'golden'
             cj.image = load_image("~/Projects/computer-vision/image_segmentation/examples/{}.jpg".format(example))

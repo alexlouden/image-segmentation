@@ -1,7 +1,7 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, send_file
 from requests.exceptions import HTTPError, Timeout, RequestException
 
-from alg import download_image
+from alg import ClusterJob, download_image
 from utils import make_hash
 from validation import ImageInputs, ValidationError
 
@@ -23,9 +23,6 @@ def format_image(image_data):
 @views.route('/', defaults={'image_url': ''})
 @views.route('/<path:image_url>')
 def image(image_url=''):
-
-    # TODO strip args from image_url
-    # Subclass werkzeug.routing.PathConverter to only match on pre-query params (?.*)
 
     params = {
         'url': image_url,
@@ -82,9 +79,32 @@ def image(image_url=''):
     # Set defaults to missing params
     params['args'] = request.args
 
+    kwargs = {}
+
+    if 'colour_space' in params['args']:
+        kwargs['colour_space'] = params['args']['colour_space']
+
+    if 'cluster_method' in params['args']:
+        kwargs['cluster_method'] = params['args']['cluster_method']
+
+    if 'num_clusters' in params['args']:
+        kwargs['num_clusters'] = int(params['args']['num_clusters'])
+
+    # n_clusters=7,
+    # quantile=0.05
+
+    # ward
+    # meanshift
+    # kmeans
+
+    cj = ClusterJob(image, **kwargs)
+    cj.scale()
+    cj.cluster()
+    f = cj.export_segmented_image_file()
+    return send_file(f, mimetype='image/jpeg')
 
 
-    return jsonify(success=True, params=params)
+    # return jsonify(success=True, params=params)
     # request.args.get('', '')
 
     # Process
