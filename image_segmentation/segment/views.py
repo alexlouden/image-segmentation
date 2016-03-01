@@ -2,7 +2,7 @@ from flask import Blueprint, request, jsonify, send_file
 from requests.exceptions import HTTPError, Timeout, RequestException
 
 from alg import ClusterJob, download_image
-from utils import make_hash
+from utils import make_dict_hash, make_url_hash
 from validation import ImageInputs, ValidationError
 
 
@@ -16,35 +16,7 @@ def handle_invalid_usage(error):
     return response
 
 
-def format_image(image_data):
-    return image_data
-
-
-@views.route('/', defaults={'image_url': ''})
-@views.route('/<path:image_url>')
-def image(image_url=''):
-
-    params = {
-        'url': image_url,
-    }
-    # print params
-    # print request.args
-    # print request.view_args
-
-    params_hash = make_hash(params)
-    # print params_hash
-
-    # Have we already processed this image?
-    # existing_image_data = app.redis.get(params_hash)
-    # if existing_image_data:
-    #     return format_image(existing_image_data)
-
-    # Validate
-    inputs = ImageInputs(request)
-    if not inputs.validate():
-        response = jsonify(success=False, errors=inputs.errors)
-        response.status_code = 400
-        return response
+def download_image_validate(image_url):
 
     # Now download image and check type
     try:
@@ -74,7 +46,41 @@ def image(image_url=''):
         errors = ['URL is not a valid image']
         raise ValidationError(errors)
 
-    print 'dimensions', image.shape
+    return image
+
+
+@views.route('/', defaults={'image_url': ''})
+@views.route('/<path:image_url>')
+def image(image_url=''):
+
+    params = {
+        'url': image_url,
+    }
+    # print params
+    # print request.args
+    # print request.view_args
+
+    params_hash = make_dict_hash(params)
+    # print params_hash
+
+    # Have we already processed this image?
+    existing_image_data = views.redis.get(params_hash)
+    if existing_image_data:
+        return existing_image_data
+
+    # Validate
+    inputs = ImageInputs(request)
+    if not inputs.validate():
+        response = jsonify(success=False, errors=inputs.errors)
+        response.status_code = 400
+        return response
+
+    # TODO check image cache
+
+    # Download and validate image
+    image = download_image_validate(image_url)
+
+    # print 'dimensions', image.shape
 
     # Set defaults to missing params
     params['args'] = request.args
@@ -99,6 +105,10 @@ def image(image_url=''):
 
     cj = ClusterJob(image, **kwargs)
     cj.scale()
+
+    # Cache resized image
+    # TODO cj.image
+
     cj.cluster()
     f = cj.export_segmented_image_file()
     return send_file(f, mimetype='image/jpeg')

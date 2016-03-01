@@ -70,7 +70,7 @@ class ImageInputs(Inputs):
         'num_clusters': [
             validate_num_clusters_required_with_kmeans,
             validate_num_clusters_automatic,
-            StringNumberRange(1, 20, message='num_clusters must be an integer between %(min)s and %(max)s'),
+            StringNumberRange(1, 100, message='num_clusters must be an integer between %(min)s and %(max)s'),
         ]
 
     }

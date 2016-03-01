@@ -1,6 +1,11 @@
 import hashlib
 
 
-def make_hash(params):
+def make_dict_hash(params):
     sha = hashlib.sha1(str(frozenset(params.items())))
-    return sha.hexdigest()
+    return 'd:' + sha.hexdigest()
+
+
+def make_url_hash(url):
+    sha = hashlib.sha1(str(url))
+    return 'u:' + sha.hexdigest()

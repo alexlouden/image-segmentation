@@ -33,5 +33,6 @@ def create_app(testing=False):
     redis.init_app(app)
 
     app.register_blueprint(views)
+    views.redis = redis
 
     return app

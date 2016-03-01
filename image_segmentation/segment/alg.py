@@ -10,14 +10,6 @@ from sklearn.feature_extraction.image import grid_to_graph
 from sklearn.cluster import MeanShift, KMeans, DBSCAN, AgglomerativeClustering, estimate_bandwidth
 
 
-job = {
-    'image_url': '??',
-    'colour_space': 'hsv',
-    'cluster': 'k-means',
-    'num_clusters': 10
-}
-
-
 def convert_image_from_bgr(image, colour_space_to):
     COLOUR_CONVERSIONS = {
         'rgb': cv2.COLOR_BGR2RGB,
@@ -71,7 +63,7 @@ class Parameters(object):
     pass
 
 
-MAX_DIMENSION = 200
+MAX_DIMENSION = 300
 
 
 class ClusterJob(object):
@@ -138,7 +130,7 @@ class ClusterJob(object):
     def cluster(self):
 
         # Convert from BGR to desired colour space
-        self.image = convert_image_from_bgr(self.original_image, self.colour_space)
+        self.image = convert_image_from_bgr(self.image, self.colour_space)
 
         # Convert into columns of colours
         image_cols = self.image.reshape(-1, 3).astype(np.float)
