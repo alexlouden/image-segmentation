@@ -1,19 +1,21 @@
-from flask import request, jsonify
+from flask import Blueprint, request, jsonify
 from requests.exceptions import HTTPError, Timeout
 
 from alg import download_image
 from utils import make_hash
 from validation import ImageInputs, ValidationError
 
-from segment import app, redis
+
+views = Blueprint('views', __name__)
+
 
 
 def format_image(image_data):
     return image_data
 
 
-@app.route('/', defaults={'image_url': ''})
-@app.route('/<path:image_url>')
+@views.route('/', defaults={'image_url': ''})
+@views.route('/<path:image_url>')
 def image(image_url=''):
 
     # TODO strip args from image_url
@@ -30,7 +32,7 @@ def image(image_url=''):
     # print params_hash
 
     # Have we already processed this image?
-    # existing_image_data = redis.get(params_hash)
+    # existing_image_data = app.redis.get(params_hash)
     # if existing_image_data:
     #     return format_image(existing_image_data)
 
@@ -77,6 +79,6 @@ def image(image_url=''):
     # Process
 
     # Cache results
-    # redis.set(params_hash, params)
+    # app.redis.set(params_hash, params)
 
 # TODO catch 20s timeout, complete job on worker?

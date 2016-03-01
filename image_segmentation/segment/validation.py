@@ -1,8 +1,8 @@
 from wtforms import validators
 from flask_inputs import Inputs
-from flask import jsonify
+from flask import Blueprint, jsonify
 
-from segment import app
+validation = Blueprint('validation', __name__)
 
 
 class ValidationError(Exception):
@@ -16,7 +16,7 @@ class ValidationError(Exception):
             self.status_code = status_code
 
 
-@app.errorhandler(ValidationError)
+@validation.errorhandler(ValidationError)
 def handle_invalid_usage(error):
     response = jsonify(success=False, errors=error.errors)
     response.status_code = error.status_code
