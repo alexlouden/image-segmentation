@@ -71,9 +71,7 @@ def image(image_url=''):
     # Validate
     inputs = ImageInputs(request)
     if not inputs.validate():
-        response = jsonify(success=False, errors=inputs.errors)
-        response.status_code = 400
-        return response
+        raise ValidationError(inputs.errors)
 
     # TODO check image cache
 
