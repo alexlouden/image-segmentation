@@ -59,6 +59,7 @@ def get_image(url):
     if existing_image:
         # Load
         image = from_redis(existing_image)
+        print 'Cache hit for downloaded image'
     else:
         # Download and validate image
         image = download_image_validate(url)
@@ -98,6 +99,7 @@ def image(image_url=''):
     # Have we already processed this image?
     existing_image = views.redis.get(params_hash)
     if existing_image:
+        print 'Cache hit for segmented image'
         image = from_redis(existing_image)
         return return_image(image)
 
@@ -105,8 +107,8 @@ def image(image_url=''):
     # print 'dimensions', image.shape
 
     # drop extra params
-    allowed_keys = ('colour_space', 'cluster_method', 'num_clusters')  # TODO 'quantile'
-    kwargs = {k: v for k, v in params['args'] if k in allowed_keys}
+    allowed_keys = ('colour_space', 'cluster_method', 'num_clusters', 'quantile')
+    kwargs = {k: v for k, v in params['args'].iteritems() if k in allowed_keys}
 
     cj = ClusterJob(image, **kwargs)
     cj.scale()

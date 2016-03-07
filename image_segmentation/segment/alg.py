@@ -9,30 +9,34 @@ from cStringIO import StringIO
 from sklearn.feature_extraction.image import grid_to_graph
 from sklearn.cluster import MeanShift, KMeans, DBSCAN, AgglomerativeClustering, estimate_bandwidth
 
+COLOUR_CONVERSIONS_FROM_BGR = {
+    'rgb': cv2.COLOR_BGR2RGB,
+    'hsv': cv2.COLOR_BGR2HSV,
+    'hls': cv2.COLOR_BGR2HLS,
+    'ycrcb': cv2.COLOR_BGR2YCR_CB,
+    'lab': cv2.COLOR_BGR2LAB,
+    'luv': cv2.COLOR_BGR2LUV,
+}
+COLOUR_CONVERSIONS_TO_BGR = {
+    'rgb': cv2.COLOR_RGB2BGR,
+    'hsv': cv2.COLOR_HSV2BGR,
+    'hls': cv2.COLOR_HLS2BGR,
+    'ycrcb': cv2.COLOR_YCR_CB2BGR,
+    'lab': cv2.COLOR_LAB2BGR,
+    'luv': cv2.COLOR_LUV2BGR,
+}
+COLOUR_SPACES = ('rgb', 'hsv', 'hls', 'ycrcb', 'lab', 'luv')
+CLUSTER_METHODS = ('kmeans', 'meanshift', 'ward')
+
 
 def convert_image_from_bgr(image, colour_space_to):
-    COLOUR_CONVERSIONS = {
-        'rgb': cv2.COLOR_BGR2RGB,
-        'hsv': cv2.COLOR_BGR2HSV,
-        'hls': cv2.COLOR_BGR2HLS,
-        'ycrcb': cv2.COLOR_BGR2YCR_CB,
-        'lab': cv2.COLOR_BGR2LAB,
-        'luv': cv2.COLOR_BGR2LUV,
-    }
-    conversion = COLOUR_CONVERSIONS.get(colour_space_to)
+    conversion = COLOUR_CONVERSIONS_FROM_BGR.get(colour_space_to)
     return cv2.cvtColor(image, conversion)
 
 
 def convert_image_to_bgr(image, colour_space_from):
-    COLOUR_CONVERSIONS = {
-        'rgb': cv2.COLOR_RGB2BGR,
-        'hsv': cv2.COLOR_HSV2BGR,
-        'hls': cv2.COLOR_HLS2BGR,
-        'ycrcb': cv2.COLOR_YCR_CB2BGR,
-        'lab': cv2.COLOR_LAB2BGR,
-        'luv': cv2.COLOR_LUV2BGR,
-    }
-    conversion = COLOUR_CONVERSIONS.get(colour_space_from)
+
+    conversion = COLOUR_CONVERSIONS_TO_BGR.get(colour_space_from)
     return cv2.cvtColor(image, conversion)
 
 
@@ -71,7 +75,7 @@ class Parameters(object):
     pass
 
 
-MAX_DIMENSION = 300
+MAX_DIMENSION = 500
 
 
 class ClusterJob(object):
@@ -94,35 +98,30 @@ class ClusterJob(object):
             self.params.num_clusters = 8
         else:
             # TODO validate
-            try:
-                self.params.num_clusters = int(num_clusters[0])
-            except:
-                raise
+            self.params.num_clusters = int(num_clusters)
 
         # Mean-shift param
         if quantile is None:
             self.params.quantile = 0.1
         else:
-            self.params.quantile = quantile
+            self.params.quantile = float(quantile)
 
         # DBSCAN param
         # if epsilon is None:
         self.params.epsilon = 255*0.1
 
-        self.validate()
-
-    def validate(self):
-        pass
-        # validate_url(self.url)
-        # validate colour space
-        # validate cluster method and options
+        # Log
+        h, w = self.image.shape[:2]
+        msg = 'Clustering a {}x{} image: cluster_method={} colour_space={} num_clusters={} quantile={}'.format(
+            w, h, cluster_method, colour_space, num_clusters, quantile
+        )
+        print msg
 
     def scale(self):
 
         self.original_image = self.image.copy()
 
         self.image_height, self.image_width = self.image.shape[:2]
-        print self.image_width, self.image_height
 
         if max(self.image_width, self.image_height) > MAX_DIMENSION:
             # Need to shrink
@@ -134,9 +133,10 @@ class ClusterJob(object):
                 new_height = MAX_DIMENSION
                 new_width = int(self.image_width * new_height / self.image_height)
 
+            print 'Resizing to {}x{}'.format(new_width, new_height)
+
             self.image = cv2.resize(self.image, (new_width, new_height), interpolation=cv2.INTER_AREA)
             self.image_height, self.image_width = self.image.shape[:2]
-            print self.image_width, self.image_height
 
     def cluster(self):
 
@@ -157,6 +157,7 @@ class ClusterJob(object):
         elif self.cluster_method == 'meanshift':
             segmented = self.cluster_means_shift(image_cols)
 
+        # Too slow
         # elif self.cluster_method == 'dbscan':
         #     segmented = self.cluster_dbscan(image_cols)
 

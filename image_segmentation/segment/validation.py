@@ -1,5 +1,6 @@
 from wtforms import validators
 from flask_inputs import Inputs
+from alg import COLOUR_SPACES, CLUSTER_METHODS
 
 
 class ValidationError(Exception):
@@ -15,10 +16,9 @@ class ValidationError(Exception):
 
 def validate_num_clusters_automatic(form, field):
 
-    automatic_clustering_methods = ('ward', 'meanshift')
-    if form.data['cluster_method'] in automatic_clustering_methods:
+    if form.data['cluster_method'] == 'meanshift':
         if field.raw_data:
-            msg = 'num_clusters is automatic with any of {}'.format(', '.join(automatic_clustering_methods))
+            msg = 'num_clusters is automatic with meanshift'
             raise validators.ValidationError(msg)
         else:
             # Don't validate as number
@@ -27,13 +27,14 @@ def validate_num_clusters_automatic(form, field):
 
 def validate_num_clusters_required_with_kmeans(form, field):
 
-    if form.data['cluster_method'] == 'kmeans':
+    clustering_methods = ('kmeans', 'ward')
+    if form.data['cluster_method'] in clustering_methods:
         if not field.raw_data:
-            msg = 'num_clusters is required with kmeans'
+            msg = 'num_clusters is required with any of {}'.format(', '.join(clustering_methods))
             raise validators.ValidationError(msg)
 
 
-class StringNumberRange(validators.NumberRange):
+class StringIntegerRange(validators.NumberRange):
 
     def __call__(self, form, field):
         # Don't validate number if no cluster_method given
@@ -48,7 +49,20 @@ class StringNumberRange(validators.NumberRange):
             raise validators.ValidationError(self.message % dict(min=self.min, max=self.max))
 
         # Now check range
-        super(StringNumberRange, self).__call__(form, field)
+        super(StringIntegerRange, self).__call__(form, field)
+
+
+class StringFloatRange(validators.NumberRange):
+
+    def __call__(self, form, field):
+        try:
+            # Convert type
+            field.data = float(field.data)
+        except (ValueError, TypeError):
+            raise validators.ValidationError(self.message % dict(min=self.min, max=self.max))
+
+        # Now check range
+        super(StringFloatRange, self).__call__(form, field)
 
 
 class ImageInputs(Inputs):
@@ -56,23 +70,26 @@ class ImageInputs(Inputs):
         'colour_space': [
             validators.Optional(),
             validators.AnyOf(
-                ['rgb', 'hsv'],
+                COLOUR_SPACES,
                 message='colour_space must be one of %(values)s'
             )
         ],
         'cluster_method': [
             validators.Optional(),
             validators.AnyOf(
-                ['kmeans', 'meanshift', 'ward'],
+                CLUSTER_METHODS,
                 message='cluster_method must be one of %(values)s'
             )
         ],
         'num_clusters': [
             validate_num_clusters_required_with_kmeans,
             validate_num_clusters_automatic,
-            StringNumberRange(1, 100, message='num_clusters must be an integer between %(min)s and %(max)s'),
+            StringIntegerRange(1, 100, message='num_clusters must be an integer between %(min)s and %(max)s'),
+        ],
+        'quantile': [
+            validators.Optional(),
+            StringFloatRange(0, 1, message='quantile must be a float between  %(min)s and %(max)s'),
         ]
-
     }
     rule = {
         'image_url': [
