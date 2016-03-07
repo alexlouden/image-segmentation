@@ -4,12 +4,25 @@ from flask.ext.testing import TestCase
 from segment import create_app as seg_create_app
 
 
-class MyTest(TestCase):
+class SegmentTestCase(TestCase):
 
     def create_app(self):
-
-        app = seg_create_app(testing=True)
+        app, redis = seg_create_app(testing=True)
+        self.redis = redis
         return app
+
+
+class TestHappy(SegmentTestCase):
+
+    def test_valid_image(self):
+        url = 'https://httpbin.org/image/jpeg'
+        r = self.client.get('/' + url)
+        self.assert_200(r)
+        print self.redis.keys()
+        import ipdb; ipdb.set_trace()
+
+
+class TestValidation(SegmentTestCase):
 
     def test_root(self):
         r = self.client.get('/')
@@ -20,11 +33,6 @@ class MyTest(TestCase):
             }
         )
         self.assert_400(r)
-
-    def test_valid_image(self):
-        url = 'https://httpbin.org/image/jpeg'
-        r = self.client.get('/' + url)
-        self.assert_200(r)
 
     def test_image_500(self):
         url = 'http://httpbin.org/status/500'
@@ -57,6 +65,8 @@ class MyTest(TestCase):
         )
         self.assert_400(r)
 
+# TODO test caching output
+# TODO test caching resized image
 
 if __name__ == '__main__':
     unittest.main()

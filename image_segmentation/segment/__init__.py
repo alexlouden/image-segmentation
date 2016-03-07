@@ -35,4 +35,4 @@ def create_app(testing=False):
     app.register_blueprint(views)
     views.redis = redis
 
-    return app
+    return app, redis
