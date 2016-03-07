@@ -18,4 +18,3 @@ Clustering techniques:
 
 
 http://scikit-learn.org/stable/auto_examples/cluster/plot_affinity_propagation.html#example-cluster-plot-affinity-propagation-py
-
