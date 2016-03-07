@@ -1,4 +1,3 @@
-import numpy as np
 import pickle
 from flask import Blueprint, request, jsonify, send_file
 from requests.exceptions import HTTPError, Timeout, RequestException
