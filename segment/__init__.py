@@ -36,3 +36,6 @@ def create_app(testing=False):
     views.redis = redis
 
     return app, redis
+
+# For gunicorn
+app, _ = create_app()
