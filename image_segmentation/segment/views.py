@@ -1,7 +1,9 @@
+import numpy as np
+import pickle
 from flask import Blueprint, request, jsonify, send_file
 from requests.exceptions import HTTPError, Timeout, RequestException
 
-from alg import ClusterJob, download_image
+from alg import ClusterJob, download_image, image_to_file
 from utils import make_dict_hash, make_url_hash
 from validation import ImageInputs, ValidationError
 
@@ -49,75 +51,79 @@ def download_image_validate(image_url):
     return image
 
 
+def get_image(url):
+
+    # Check image cache
+    image_url_hash = make_url_hash(url)
+    existing_image = views.redis.get(image_url_hash)
+    if existing_image:
+        # Load
+        image = from_redis(existing_image)
+    else:
+        # Download and validate image
+        image = download_image_validate(url)
+
+    return image
+
+
+def to_redis(image):
+    return pickle.dumps(image, protocol=0)
+
+
+def from_redis(image_data):
+    return pickle.loads(image_data)
+
+
+def return_image(image):
+    f = image_to_file(image)
+    return send_file(f, mimetype='image/jpeg')
+
+
 @views.route('/', defaults={'image_url': ''})
 @views.route('/<path:image_url>')
 def image(image_url=''):
-
-    params = {
-        'url': image_url,
-    }
-    # print params
-    # print request.args
-    # print request.view_args
-
-    params_hash = make_dict_hash(params)
-    # print params_hash
-
-    # Have we already processed this image?
-    existing_image_data = views.redis.get(params_hash)
-    if existing_image_data:
-        return existing_image_data
 
     # Validate
     inputs = ImageInputs(request)
     if not inputs.validate():
         raise ValidationError(inputs.errors)
 
-    # TODO check image cache
+    params = {
+        'url': image_url,
+        'args': request.args
+    }
+    # print params
+    params_hash = make_dict_hash(params)
 
-    # Download and validate image
-    image = download_image_validate(image_url)
+    # Have we already processed this image?
+    existing_image = views.redis.get(params_hash)
+    if existing_image:
+        image = from_redis(existing_image)
+        return return_image(image)
 
+    image = get_image(image_url)
     # print 'dimensions', image.shape
 
-    # Set defaults to missing params
-    params['args'] = request.args
-
-    kwargs = {}
-
-    if 'colour_space' in params['args']:
-        kwargs['colour_space'] = params['args']['colour_space']
-
-    if 'cluster_method' in params['args']:
-        kwargs['cluster_method'] = params['args']['cluster_method']
-
-    if 'num_clusters' in params['args']:
-        kwargs['num_clusters'] = int(params['args']['num_clusters'])
-
-    # n_clusters=7,
-    # quantile=0.05
-
-    # ward
-    # meanshift
-    # kmeans
+    # drop extra params
+    allowed_keys = ('colour_space', 'cluster_method', 'num_clusters')  # TODO 'quantile'
+    kwargs = {k: v for k, v in params['args'] if k in allowed_keys}
 
     cj = ClusterJob(image, **kwargs)
     cj.scale()
 
     # Cache resized image
-    # TODO cj.image
+    image_url_hash = make_url_hash(image_url)
+    views.redis.set(image_url_hash, to_redis(cj.image))
 
+    # TODO time
     cj.cluster()
-    f = cj.export_segmented_image_file()
-    return send_file(f, mimetype='image/jpeg')
 
+    # Cache result
+    views.redis.set(params_hash, to_redis(cj.segmented_image))
 
-    # return jsonify(success=True, params=params)
-    # request.args.get('', '')
-
-    # Process
+    return return_image(cj.segmented_image)
 
     # Cache results
-    # app.redis.set(params_hash, params)
+    # views.redis.set(params_hash, params)
 
 # TODO catch 20s timeout, complete job on worker?

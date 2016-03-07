@@ -59,6 +59,14 @@ def show(image):
     cv2.waitKey()
 
 
+def image_to_file(image):
+    f = StringIO()
+    ret, buf = cv2.imencode('.jpg', image)
+    f.write(np.array(buf).tostring())
+    f.seek(0)
+    return f
+
+
 class Parameters(object):
     pass
 
@@ -86,7 +94,10 @@ class ClusterJob(object):
             self.params.num_clusters = 8
         else:
             # TODO validate
-            self.params.num_clusters = num_clusters
+            try:
+                self.params.num_clusters = int(num_clusters[0])
+            except:
+                raise
 
         # Mean-shift param
         if quantile is None:
@@ -266,13 +277,6 @@ class ClusterJob(object):
     def export_segmented_image(self, filename):
 
         cv2.imwrite(filename, self.segmented_image, (cv2.IMWRITE_JPEG_QUALITY, 80))
-
-    def export_segmented_image_file(self):
-        f = StringIO()
-        ret, buf = cv2.imencode('.jpg', self.segmented_image)
-        f.write(np.array(buf).tostring())
-        f.seek(0)
-        return f
 
 
 if __name__ == "__main__":
