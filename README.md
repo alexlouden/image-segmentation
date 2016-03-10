@@ -18,3 +18,8 @@ Clustering techniques:
 
 
 http://scikit-learn.org/stable/auto_examples/cluster/plot_affinity_propagation.html#example-cluster-plot-affinity-propagation-py
+
+
+heroku plugins:install heroku-redis
+heroku redis:maxmemory --policy allkeys-lru
+> allkeys-lru evict keys trying to remove the less recently used keys first.
