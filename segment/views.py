@@ -54,7 +54,7 @@ def get_image(url):
 
     # Check image cache
     image_url_hash = make_url_hash(url)
-    existing_image = views.redis.get(image_url_hash)
+    existing_image = views.redis.safe_get(image_url_hash)
     if existing_image:
         # Load
         image = from_redis(existing_image)
@@ -96,7 +96,7 @@ def image(image_url=''):
     params_hash = make_dict_hash(params)
 
     # Have we already processed this image?
-    existing_image = views.redis.get(params_hash)
+    existing_image = views.redis.safe_get(params_hash)
     if existing_image:
         print 'Cache hit for segmented image'
         image = from_redis(existing_image)
@@ -114,13 +114,13 @@ def image(image_url=''):
 
     # Cache resized image
     image_url_hash = make_url_hash(image_url)
-    views.redis.set(image_url_hash, to_redis(cj.image))
+    views.redis.safe_set(image_url_hash, to_redis(cj.image))
 
     # TODO time
     cj.cluster()
 
     # Cache result
-    views.redis.set(params_hash, to_redis(cj.segmented_image))
+    views.redis.safe_set(params_hash, to_redis(cj.segmented_image))
 
     return return_image(cj.segmented_image)
 
