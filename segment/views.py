@@ -128,3 +128,5 @@ def image(image_url=''):
     # views.redis.set(params_hash, params)
 
 # TODO catch 20s timeout, complete job on worker?
+
+# TODO favicon.ico

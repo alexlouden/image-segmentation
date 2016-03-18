@@ -2,6 +2,7 @@ from __future__ import division
 import os
 # import matplotlib.pyplot as plt
 import numpy as np
+from scipy.spatial.distance import cdist
 import requests
 import cv2
 from cStringIO import StringIO
@@ -75,7 +76,9 @@ class Parameters(object):
     pass
 
 
-MAX_DIMENSION = 500
+MAX_DIMENSION = 1000
+"Number of pixels to sample when choosing cluster centers"
+MAX_NUM_SAMPLES = 5000
 
 
 class ClusterJob(object):
@@ -146,25 +149,42 @@ class ClusterJob(object):
         # Convert into columns of colours
         image_cols = self.image.reshape(-1, 3).astype(np.float)
 
+        subsample_image_cols = image_cols.copy()
+        # TODO this can be optimised if needed
+        np.random.shuffle(subsample_image_cols)
+        subsample_image_cols = subsample_image_cols[:MAX_NUM_SAMPLES, :]
+
         # Scale
-        for i in range(0, 3):
-            image_cols[:, i] *= self.params.scale[i]
+        # TODO expose API
+        # for i in range(0, 3):
+        #     image_cols[:, i] *= self.params.scale[i]
 
         # Cluster
         if self.cluster_method == 'kmeans':
-            segmented = self.cluster_k_means(image_cols)
+            centers = self.cluster_k_means(subsample_image_cols)
 
         elif self.cluster_method == 'meanshift':
-            segmented = self.cluster_means_shift(image_cols)
+            centers = self.cluster_means_shift(subsample_image_cols)
 
-        # Too slow
+        # Too slow ?
         # elif self.cluster_method == 'dbscan':
-        #     segmented = self.cluster_dbscan(image_cols)
+        #     centers = self.cluster_dbscan(subsample_image_cols)
 
         elif self.cluster_method == 'ward':
-            segmented = self.cluster_ward(image_cols)
+            # TODO connectivity constraints needs whole image
+            centers, labels = self.cluster_ward(image_cols)
+            segmented = centers[labels]
         else:
             raise RuntimeError('Invalid clustering algorithm')
+
+        centers = self.unscale_centers(centers)
+
+        if self.cluster_method != 'ward':
+            # Find closest cluster per pixel
+            # TODO assign noise to nearest cluster?
+            point_distances = cdist(centers, image_cols, 'euclidean')
+            cluster_indexes = np.argmin(point_distances, axis=0)
+            segmented = centers[cluster_indexes]
 
         # Segmented image in clustered colour space
         segmented_image = segmented.reshape(self.image.shape).astype(np.uint8)
@@ -191,12 +211,7 @@ class ClusterJob(object):
         self.number_of_clusters = km.n_clusters
         print 'number of clusters', self.number_of_clusters
 
-        centers = self.unscale_centers(km.cluster_centers_)
-
-        labels = km.predict(image_cols)
-        segmented = centers[labels]
-
-        return segmented
+        return km.cluster_centers_
 
     def cluster_means_shift(self, image_cols):
         print 'Means shifting'
@@ -211,11 +226,7 @@ class ClusterJob(object):
 
         print 'number of clusters', self.number_of_clusters
 
-        centers = self.unscale_centers(ms.cluster_centers_)
-
-        labels = ms.predict(image_cols)
-        segmented = centers[labels]
-        return segmented
+        return ms.cluster_centers_
 
     def cluster_dbscan(self, image_cols):
         print 'DBSCAN'
@@ -238,14 +249,7 @@ class ClusterJob(object):
             cluster_mean = np.mean(cluster_points, axis=0)
             centers[i, :] = cluster_mean
 
-        print centers
-        centers = self.unscale_centers(centers)
-
-        # TODO assign noise to nearest cluster?
-
-        labels = db.labels_
-        segmented = centers[labels]
-        return segmented
+        return centers
 
     def cluster_ward(self, image_cols):
 
@@ -269,11 +273,7 @@ class ClusterJob(object):
             cluster_mean = np.mean(cluster_points, axis=0)
             centers[i, :] = cluster_mean
 
-        centers = self.unscale_centers(centers)
-
-        labels = ward.labels_
-        segmented = centers[labels]
-        return segmented
+        return centers, ward.labels_
 
     def export_segmented_image(self, filename):
 
