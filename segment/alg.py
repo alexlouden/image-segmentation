@@ -76,9 +76,11 @@ class Parameters(object):
     pass
 
 
-MAX_DIMENSION = 1000
+MAX_DIMENSION = int(os.environ.get('MAX_DIMENSION', 1000))
+"Downsize image if max image dimension is greater than this"
+
+MAX_NUM_SAMPLES = int(os.environ.get('MAX_NUM_SAMPLES', 5000))
 "Number of pixels to sample when choosing cluster centers"
-MAX_NUM_SAMPLES = 5000
 
 
 class ClusterJob(object):
