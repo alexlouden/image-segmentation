@@ -10,3 +10,4 @@ mockredispy==2.9.0.11
 Flask-Testing==0.4.2
 gevent==1.1.0
 opbeat==3.3
+blinker==1.4
