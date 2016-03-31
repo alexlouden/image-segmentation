@@ -5,7 +5,7 @@ from requests.exceptions import HTTPError, Timeout, RequestException
 from alg import ClusterJob, download_image, image_to_file
 from utils import make_dict_hash, make_url_hash
 from validation import ImageInputs, ValidationError
-
+from opbeat.traces import trace
 
 views = Blueprint('views', __name__)
 
@@ -117,7 +117,8 @@ def image(image_url=''):
     views.redis.safe_set(image_url_hash, to_redis(cj.image))
 
     # TODO time
-    cj.cluster()
+    with trace("cluster"):
+        cj.cluster()
 
     # Cache result
     views.redis.safe_set(params_hash, to_redis(cj.segmented_image))
