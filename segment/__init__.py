@@ -8,6 +8,12 @@ from opbeat.contrib.flask import Opbeat
 
 from segment.views import views
 
+opbeat = Opbeat(
+    organization_id='f4005e762f244a3c9ad94d9f4d4cabad',
+    app_id='5d7d348b72',
+    secret_token='ed50d6109c233614d041ea29bc48ca2aa1a564c5',
+)
+
 
 class OptionalRedis(StrictRedis):
     """ Redis is optional """
@@ -50,13 +56,7 @@ def create_app(testing=False):
         redis = FlaskRedis.from_custom_provider(MockRedisWrapper)
     else:
         redis = FlaskRedis.from_custom_provider(OptionalRedis)
-
-        app.opbeat = Opbeat(
-            app,
-            organization_id='f4005e762f244a3c9ad94d9f4d4cabad',
-            app_id='5d7d348b72',
-            secret_token='ed50d6109c233614d041ea29bc48ca2aa1a564c5',
-        )
+        opbeat.init_app(app)
 
     redis.init_app(app)
 
