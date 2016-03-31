@@ -4,6 +4,7 @@ from redis.exceptions import ConnectionError, TimeoutError
 from flask import Flask
 from flask.ext.redis import FlaskRedis
 from mockredis import MockRedis
+from opbeat.contrib.flask import Opbeat
 
 from segment.views import views
 
@@ -59,3 +60,11 @@ def create_app(testing=False):
 
 # For gunicorn
 app, _ = create_app()
+
+
+opbeat = Opbeat(
+    app,
+    organization_id='f4005e762f244a3c9ad94d9f4d4cabad',
+    app_id='5d7d348b72',
+    secret_token='ed50d6109c233614d041ea29bc48ca2aa1a564c5',
+)
