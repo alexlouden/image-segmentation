@@ -1,1 +1,1 @@
-web: gunicorn segment:app --worker-class gevent --worker-connections 100 --threads 2 --timeout 27 --log-file -
+web: gunicorn segment:app --config gunicornconfig.py
