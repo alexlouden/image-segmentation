@@ -1,5 +1,6 @@
 from __future__ import division
 import os
+import opbeat
 # import matplotlib.pyplot as plt
 import numpy as np
 from scipy.spatial.distance import cdist
@@ -143,6 +144,7 @@ class ClusterJob(object):
             self.image = cv2.resize(self.image, (new_width, new_height), interpolation=cv2.INTER_AREA)
             self.image_height, self.image_width = self.image.shape[:2]
 
+    @opbeat.trace
     def cluster(self):
 
         # Convert from BGR to desired colour space
