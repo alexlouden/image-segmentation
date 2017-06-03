@@ -1,0 +1,24 @@
+{
+    "name": "Image segmentation service",
+    "repository": "https://github.com/alexlouden/image-segmentation",
+    "success_url": "/http://i.imgur.com/hsiR4hV.jpg?cluster_method=meanshift&quantile=0.015&colour_space=ycrcb",
+    "env": {
+        "MAX_DIMENSION": {
+            "description": "Downsize images larger than this",
+            "value": "500"
+        },
+        "MAX_NUM_SAMPLES": {
+            "description": "Number of pixels from input image to sample (smaller is faster)",
+            "value": "5000"
+        }
+    },
+    "addons": [
+        "heroku-redis",
+        "opbeat"
+    ],
+    "buildpacks": [
+        {
+            "url": "https://github.com/kennethreitz/conda-buildpack.git"
+        }
+    ]
+}
