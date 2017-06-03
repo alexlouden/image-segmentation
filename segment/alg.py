@@ -1,7 +1,5 @@
 from __future__ import division
 import os
-import opbeat
-# import matplotlib.pyplot as plt
 import numpy as np
 from scipy.spatial.distance import cdist
 import requests
@@ -48,7 +46,7 @@ def download_image(url):
     # Raise exception on error
     response.raise_for_status()
     numpy_array = np.asarray(bytearray(response.raw.read()), dtype=np.uint8)
-    image = cv2.imdecode(numpy_array, cv2.CV_LOAD_IMAGE_COLOR)
+    image = cv2.imdecode(numpy_array, cv2.IMREAD_COLOR)
     # TODO: handle transparency (load using cv2.IMREAD_UNCHANGED and convert alpha layer to white?)
     return image
 
@@ -56,7 +54,7 @@ def download_image(url):
 def load_image(filename):
     filename = os.path.expanduser(filename)
     filename = os.path.normpath(filename)
-    return cv2.imread(filename, cv2.CV_LOAD_IMAGE_COLOR)
+    return cv2.imread(filename, cv2.IMREAD_COLOR)
 
 
 def show(image):
