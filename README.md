@@ -2,8 +2,8 @@
 
 Image segmentation web service designed for hosting on Heroku.
 
-![](//i.imgur.com/hsiR4hV.jpg)
-![](//segment-image.herokuapp.com/http://i.imgur.com/hsiR4hV.jpg?cluster_method=meanshift&quantile=0.015&colour_space=ycrcb)
+![](https://i.imgur.com/hsiR4hV.jpg)
+![](https://segment-image.herokuapp.com/http://i.imgur.com/hsiR4hV.jpg?cluster_method=meanshift&quantile=0.015&colour_space=ycrcb)
 
 The API is inspired by [imgix](http://imgix.com) - you pass in the image url (optionally urlencoded),  control the algorithm with query parameters, and recieve a segmented image as the response (or a JSON formatted error). This allows you to embed it in a web page, or play with the algorithm in your browser without having to install any software.
 
