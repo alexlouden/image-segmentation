@@ -9,9 +9,9 @@ from opbeat.contrib.flask import Opbeat
 from segment.views import views
 
 opbeat = Opbeat(
-    organization_id='f4005e762f244a3c9ad94d9f4d4cabad',
-    app_id='5d7d348b72',
-    secret_token='ed50d6109c233614d041ea29bc48ca2aa1a564c5',
+    organization_id=environ.get('OPBEAT_ORGANIZATION_ID'),
+    app_id=environ.get('OPBEAT_APP_ID'),
+    secret_token=environ.get('OPBEAT_SECRET_TOKEN'),
 )
 
 
