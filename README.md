@@ -37,6 +37,43 @@ Ward is interesting, because it's configured with connectivity constraints - it'
 Configure Redis to evict the less recently used keys first:
 
 ```
-heroku plugins:install heroku-redis
 heroku redis:maxmemory --policy allkeys-lru
 ```
+
+---
+
+## Gallery
+
+![](http://i.imgur.com/ktOiD80.jpg)
+![](http://segment-image.herokuapp.com/http://i.imgur.com/ktOiD80.jpg?cluster_method=meanshift&quantile=0.1&colour_space=luv)
+
+---
+
+<img src="https://github.com/alexlouden/image-segmentation/raw/master/examples/golden.jpg" width="400"/>
+
+| Method | Meanshift `quantile=0.07` | Meanshift `quantile=0.15` |
+|---|---|---|
+| RGB | <img src="http://segment-image.herokuapp.com/https://github.com/alexlouden/image-segmentation/raw/master/examples/golden.jpg?cluster_method=meanshift&quantile=0.07&colour_space=rgb"> | <img src="http://segment-image.herokuapp.com/https://github.com/alexlouden/image-segmentation/raw/master/examples/golden.jpg?cluster_method=meanshift&quantile=0.15&colour_space=rgb"> |
+| HSV | <img src="http://segment-image.herokuapp.com/https://github.com/alexlouden/image-segmentation/raw/master/examples/golden.jpg?cluster_method=meanshift&quantile=0.07&colour_space=hsv"> | <img src="http://segment-image.herokuapp.com/https://github.com/alexlouden/image-segmentation/raw/master/examples/golden.jpg?cluster_method=meanshift&quantile=0.15&colour_space=hsv"> |
+| HLS | <img src="http://segment-image.herokuapp.com/https://github.com/alexlouden/image-segmentation/raw/master/examples/golden.jpg?cluster_method=meanshift&quantile=0.07&colour_space=hls"> | <img src="http://segment-image.herokuapp.com/https://github.com/alexlouden/image-segmentation/raw/master/examples/golden.jpg?cluster_method=meanshift&quantile=0.15&colour_space=hls"> |
+| YCrCb | <img src="http://segment-image.herokuapp.com/https://github.com/alexlouden/image-segmentation/raw/master/examples/golden.jpg?cluster_method=meanshift&quantile=0.07&colour_space=ycrcb"> | <img src="http://segment-image.herokuapp.com/https://github.com/alexlouden/image-segmentation/raw/master/examples/golden.jpg?cluster_method=meanshift&quantile=0.15&colour_space=ycrcb"> |
+| LAB | <img src="http://segment-image.herokuapp.com/https://github.com/alexlouden/image-segmentation/raw/master/examples/golden.jpg?cluster_method=meanshift&quantile=0.07&colour_space=lab"> | <img src="http://segment-image.herokuapp.com/https://github.com/alexlouden/image-segmentation/raw/master/examples/golden.jpg?cluster_method=meanshift&quantile=0.15&colour_space=lab"> |
+| LUV | <img src="http://segment-image.herokuapp.com/https://github.com/alexlouden/image-segmentation/raw/master/examples/golden.jpg?cluster_method=meanshift&quantile=0.07&colour_space=luv"> | <img src="http://segment-image.herokuapp.com/https://github.com/alexlouden/image-segmentation/raw/master/examples/golden.jpg?cluster_method=meanshift&quantile=0.15&colour_space=luv"> |
+
+| Method | K-Means `num_clusters=4` | K-means `num_clusters=8` |
+|---|---|---|
+| RGB | <img src="http://segment-image.herokuapp.com/https://github.com/alexlouden/image-segmentation/raw/master/examples/golden.jpg?cluster_method=kmeans&num_clusters=4&colour_space=rgb"> | <img src="http://segment-image.herokuapp.com/https://github.com/alexlouden/image-segmentation/raw/master/examples/golden.jpg?cluster_method=kmeans&num_clusters=8&colour_space=rgb"> |
+| HSV | <img src="http://segment-image.herokuapp.com/https://github.com/alexlouden/image-segmentation/raw/master/examples/golden.jpg?cluster_method=kmeans&num_clusters=4&colour_space=hsv"> | <img src="http://segment-image.herokuapp.com/https://github.com/alexlouden/image-segmentation/raw/master/examples/golden.jpg?cluster_method=kmeans&num_clusters=8&colour_space=hsv"> |
+| HLS | <img src="http://segment-image.herokuapp.com/https://github.com/alexlouden/image-segmentation/raw/master/examples/golden.jpg?cluster_method=kmeans&num_clusters=4&colour_space=hls"> | <img src="http://segment-image.herokuapp.com/https://github.com/alexlouden/image-segmentation/raw/master/examples/golden.jpg?cluster_method=kmeans&num_clusters=8&colour_space=hls"> |
+| YCrCb | <img src="http://segment-image.herokuapp.com/https://github.com/alexlouden/image-segmentation/raw/master/examples/golden.jpg?cluster_method=kmeans&num_clusters=4&colour_space=ycrcb"> | <img src="http://segment-image.herokuapp.com/https://github.com/alexlouden/image-segmentation/raw/master/examples/golden.jpg?cluster_method=kmeans&num_clusters=8&colour_space=ycrcb"> |
+| LAB | <img src="http://segment-image.herokuapp.com/https://github.com/alexlouden/image-segmentation/raw/master/examples/golden.jpg?cluster_method=kmeans&num_clusters=4&colour_space=lab"> | <img src="http://segment-image.herokuapp.com/https://github.com/alexlouden/image-segmentation/raw/master/examples/golden.jpg?cluster_method=kmeans&num_clusters=8&colour_space=lab"> |
+| LUV | <img src="http://segment-image.herokuapp.com/https://github.com/alexlouden/image-segmentation/raw/master/examples/golden.jpg?cluster_method=kmeans&num_clusters=4&colour_space=luv"> | <img src="http://segment-image.herokuapp.com/https://github.com/alexlouden/image-segmentation/raw/master/examples/golden.jpg?cluster_method=kmeans&num_clusters=8&colour_space=luv"> |
+
+| Method | Ward `num_clusters=6` | Ward `num_clusters=15` |
+|---|---|---|
+| RGB | <img src="http://segment-image.herokuapp.com/https://github.com/alexlouden/image-segmentation/raw/master/examples/golden.jpg?cluster_method=ward&num_clusters=6&colour_space=rgb"> | <img src="http://segment-image.herokuapp.com/https://github.com/alexlouden/image-segmentation/raw/master/examples/golden.jpg?cluster_method=ward&num_clusters=15&colour_space=rgb"> |
+| HSV | <img src="http://segment-image.herokuapp.com/https://github.com/alexlouden/image-segmentation/raw/master/examples/golden.jpg?cluster_method=ward&num_clusters=6&colour_space=hsv"> | <img src="http://segment-image.herokuapp.com/https://github.com/alexlouden/image-segmentation/raw/master/examples/golden.jpg?cluster_method=ward&num_clusters=15&colour_space=hsv"> |
+| HLS | <img src="http://segment-image.herokuapp.com/https://github.com/alexlouden/image-segmentation/raw/master/examples/golden.jpg?cluster_method=ward&num_clusters=6&colour_space=hls"> | <img src="http://segment-image.herokuapp.com/https://github.com/alexlouden/image-segmentation/raw/master/examples/golden.jpg?cluster_method=ward&num_clusters=15&colour_space=hls"> |
+| YCrCb | <img src="http://segment-image.herokuapp.com/https://github.com/alexlouden/image-segmentation/raw/master/examples/golden.jpg?cluster_method=ward&num_clusters=6&colour_space=ycrcb"> | <img src="http://segment-image.herokuapp.com/https://github.com/alexlouden/image-segmentation/raw/master/examples/golden.jpg?cluster_method=ward&num_clusters=15&colour_space=ycrcb"> |
+| LAB | <img src="http://segment-image.herokuapp.com/https://github.com/alexlouden/image-segmentation/raw/master/examples/golden.jpg?cluster_method=ward&num_clusters=6&colour_space=lab"> | <img src="http://segment-image.herokuapp.com/https://github.com/alexlouden/image-segmentation/raw/master/examples/golden.jpg?cluster_method=ward&num_clusters=15&colour_space=lab"> |
+| LUV | <img src="http://segment-image.herokuapp.com/https://github.com/alexlouden/image-segmentation/raw/master/examples/golden.jpg?cluster_method=ward&num_clusters=6&colour_space=luv"> | <img src="http://segment-image.herokuapp.com/https://github.com/alexlouden/image-segmentation/raw/master/examples/golden.jpg?cluster_method=ward&num_clusters=15&colour_space=luv"> |
